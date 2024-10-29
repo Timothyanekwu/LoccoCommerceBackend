@@ -43,6 +43,7 @@ const cartFormat = new Schema(
     },
     name: { type: String },
     img: [String],
+    user_id: { type: String },
   },
   { timestamps: true }
 );
@@ -76,7 +77,10 @@ const ordersFormat = new Schema(
     // status: {type: String},
     totalPrice: { type: Number },
     payMethod: { type: String },
-
+    user_id: {
+      type: String,
+      required: true,
+    },
     products: [cartFormat],
   },
   { timestamps: true }
