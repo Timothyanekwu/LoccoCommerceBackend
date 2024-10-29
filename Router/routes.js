@@ -1,18 +1,34 @@
 const express = require("express");
 const router = express.Router();
+const requireAuth = require("../middleware/requireAuth");
 const {
   productFormat,
   cartFormat,
   locationsFormat,
   ordersFormat,
 } = require("../SchemaModel/schema");
+
+const User = require("../SchemaModel/userModel");
 const mongoose = require("mongoose");
-const {
-  PathParamsContext,
-} = require("next/dist/shared/lib/hooks-client-context.shared-runtime");
 const mergeSortAscending = require("../sortingAlgorithm");
 
 // Routes
+router.use(requireAuth);
+
+router.get("/profile", async (req, res) => {
+  const user_id = req.user._id;
+  try {
+    const profile = await User.findById(user_id);
+    res.status(200).json({
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      phoneNumber: profile.phoneNumber,
+      email: profile.email,
+    });
+  } catch (err) {
+    res.status(400).json({ err: err.message });
+  }
+});
 
 // get data
 router.get("/", async (req, res) => {
@@ -106,8 +122,9 @@ router.patch("/updateProduct/:id", async (req, res) => {
 
 // get cart data
 router.get("/cartData", async (req, res) => {
+  const user_id = req.user._id;
   try {
-    const cartData = await cartFormat.find({});
+    const cartData = await cartFormat.find({ user_id });
     res.json(cartData);
   } catch (err) {
     console.log(err);
@@ -129,6 +146,7 @@ router.post("/cartData", async (req, res) => {
   } = req.body;
 
   try {
+    const user_id = req.user._id;
     const cart = await cartFormat.create({
       qty,
       price,
@@ -137,6 +155,7 @@ router.post("/cartData", async (req, res) => {
       category,
       quantity,
       firstTerm,
+      user_id,
       format, // Assuming 'productFormat' refers to the format of the product
     });
     res.status(200).json(cart);

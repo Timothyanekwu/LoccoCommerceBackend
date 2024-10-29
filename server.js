@@ -3,8 +3,9 @@ const mongoose = require("mongoose");
 const express = require("express");
 const cors = require("cors");
 const workRoutes = require("./Router/routes");
-const pageGutter = require("./pageGutter");
-const { productFormat, cartFormat } = require("./SchemaModel/schema");
+const userRoutes = require("./Router/user");
+// const pageGutter = require("./pageGutter");
+// const { productFormat, cartFormat } = require("./SchemaModel/schema");
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use((req, res, next) => {
 
 // routes
 app.use("/products", workRoutes);
+app.use("/user", userRoutes);
 
 // connecting to the database
 mongoose
@@ -38,26 +40,26 @@ mongoose
     console.log(err);
   });
 
-// routes
-let pageNumber = null;
+// // routes
+// let pageNumber = null;
 
-// Define the GET route handler for "/"
-app.get("/", async (req, res) => {
-  if (!pageNumber) {
-    // If pageNumber is not set, return all products
-    const products = await productFormat.find({});
-    return res.status(200).json(products);
-  }
+// // Define the GET route handler for "/"
+// app.get("/", async (req, res) => {
+//   if (!pageNumber) {
+//     // If pageNumber is not set, return all products
+//     const products = await productFormat.find({});
+//     return res.status(200).json(products);
+//   }
 
-  // If pageNumber is set, apply page gutter logic
-  const products = await productFormat.find({});
-  const result = pageGutter(products, pageNumber);
-  res.status(200).json(result);
-});
+//   // If pageNumber is set, apply page gutter logic
+//   const products = await productFormat.find({});
+//   const result = pageGutter(products, pageNumber);
+//   res.status(200).json(result);
+// });
 
-// Define the POST route handler for "/page"
-app.post("/page", (req, res) => {
-  const { page } = req.body;
-  pageNumber = page;
-  res.send("Page number updated successfully");
-});
+// // Define the POST route handler for "/page"
+// app.post("/page", (req, res) => {
+//   const { page } = req.body;
+//   pageNumber = page;
+//   res.send("Page number updated successfully");
+// });
