@@ -64,6 +64,7 @@ const locationsFormat = new Schema(
     additionalPhone: {
       type: String,
     },
+    user_id: { type: String },
   },
   { timestamps: true }
 );
@@ -82,6 +83,7 @@ const ordersFormat = new Schema(
       required: true,
     },
     products: [cartFormat],
+    user_id: { type: String },
   },
   { timestamps: true }
 );
