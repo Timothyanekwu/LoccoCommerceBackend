@@ -59,15 +59,38 @@ router.get("/", async (req, res) => {
   }
 
   try {
-    // Find products based on the constructed query
-    const products = await productFormat.find(query);
+    // Calculate the total count based on the constructed query
+    const totalProduct = await productFormat.countDocuments(query);
 
-    const final = bod.sortBy
-      ? mergeSortAscending(products, bod.sortBy)
-      : products;
+    // Define page size and calculate the start index based on the requested page
+    const pageSize = 5;
+    const page = parseInt(bod.page) || 1; // Default page to 1 if not specified
+    const startIndex = (page - 1) * pageSize;
 
-    // Return the filtered products
-    res.status(200).json(final);
+    // Define sorting logic
+    let sortOptions = {};
+    if (bod.sortBy) {
+      if (bod.sortBy === "priceAsc") {
+        sortOptions = { price: 1 };
+      } else if (bod.sortBy === "priceDesc") {
+        sortOptions = { price: -1 };
+      } else if (bod.sortBy === "nameAsc") {
+        sortOptions = { name: 1 };
+      } else if (bod.sortBy === "nameDesc") {
+        sortOptions = { name: -1 };
+      }
+    }
+
+    const products = await productFormat
+      .find(query)
+      .sort(sortOptions)
+      .skip(startIndex)
+      .limit(pageSize);
+
+    res.status(200).json({
+      final: products,
+      totalPages: Math.ceil(totalProduct / pageSize),
+    });
   } catch (error) {
     console.error("Error fetching products:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -208,9 +231,22 @@ router.delete("/cartData/:id", async (req, res) => {
   console.log("item already deleted");
 });
 
+//Clear cart
+router.delete("/clearCart", async (req, res) => {
+  const user_id = req.user._id;
+  const product = await cartFormat.deleteMany({ user_id });
+  if (!product) {
+    return res.status(404).json({ error: "no such product" });
+  }
+  res.status(200).json(product);
+  console.log("cart Cleared!!!");
+});
+
+// get locations
 router.get("/locations", async (req, res) => {
   try {
-    const locations = await locationsFormat.find({});
+    const user_id = req.user._id;
+    const locations = await locationsFormat.find({ user_id });
     res.status(200).json(locations);
   } catch (err) {
     console.log(err);
@@ -230,6 +266,7 @@ router.post("/locations", async (req, res) => {
   } = req.body;
 
   try {
+    const user_id = req.user._id;
     const locations = await locationsFormat.create({
       name,
       surname,
@@ -237,6 +274,7 @@ router.post("/locations", async (req, res) => {
       additionalInfo,
       phoneNo,
       additionalPhone,
+      user_id,
       format,
     });
 
@@ -262,8 +300,9 @@ router.delete("/locations/:id", async (req, res) => {
 });
 
 router.get("/orders", async (req, res) => {
+  const user_id = req.user._id;
   try {
-    const orders = await ordersFormat.find({});
+    const orders = await ordersFormat.find({ user_id });
     res.status(200).json(orders);
   } catch (err) {
     res.status(500).json({ err: err.message });
@@ -281,6 +320,7 @@ router.post("/orders", async (req, res) => {
     payMethod,
   } = req.body;
   try {
+    const user_id = req.user._id;
     const order = await ordersFormat.create({
       customerFullName,
       customerPhone,
@@ -289,6 +329,7 @@ router.post("/orders", async (req, res) => {
       orderNumber,
       totalPrice,
       payMethod,
+      user_id,
     });
 
     res.status(200).json(order);
