@@ -54,8 +54,14 @@ router.get("/", async (req, res) => {
     query.category = bod.category;
   }
 
-  if (bod.discount) {
-    query.discount = { $gte: parseInt(bod.discount) };
+  if (bod.discount && !isNaN(bod.discount)) {
+    const discountThreshold = parseInt(bod.discount, 10);
+    query.$expr = {
+      $gte: [
+        { $multiply: [{ $divide: ["$discountPrice", "$price"] }, 100] },
+        discountThreshold,
+      ],
+    };
   }
 
   try {
@@ -102,6 +108,7 @@ router.post("/newProduct", async (req, res) => {
   const {
     name,
     price,
+    discountPrice,
     category,
     quantity,
     description,
@@ -113,6 +120,7 @@ router.post("/newProduct", async (req, res) => {
     const product = await productFormat.create({
       name,
       price,
+      discountPrice,
       category,
       quantity,
       description,

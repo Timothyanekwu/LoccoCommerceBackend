@@ -14,6 +14,9 @@ const productFormat = new Schema(
       type: Number,
       required: true,
     },
+    discountPrice: {
+      type: Number,
+    },
     firstTerm: { type: Number },
     category: {
       type: String,
