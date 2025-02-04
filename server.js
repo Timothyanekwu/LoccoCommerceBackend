@@ -11,14 +11,29 @@ const app = express();
 
 // middleware
 app.use(express.json());
-app.use(
-  cors({
-    origin: [
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
       "http://localhost:3000",
       "https://67a213b8b61bc5389cb0ab7a--loccocommerce.netlify.app",
-    ],
-  })
-);
+    ];
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, origin); // Dynamically allow the requesting origin
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true, // Allows cookies, authentication headers, etc.
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
 app.use((req, res, next) => {
   console.log(`${req.path} :: ${req.method}`);
   next();
