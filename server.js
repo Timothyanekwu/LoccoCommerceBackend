@@ -13,7 +13,10 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://67a213b8b61bc5389cb0ab7a--loccocommerce.netlify.app",
+    ],
   })
 );
 app.use((req, res, next) => {
